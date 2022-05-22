@@ -5,7 +5,7 @@
   <arg name="root" default="torso_lift_link"/>
   <arg name="tip"  default="gripper_link"/>
 
-  <node pkg="virtual_force_drag" type="joint_states_filter.py" name="joint_states_filter" />
+  <node pkg="virtual_force_drag" type="fetch_joint_states_filter.py" name="joint_states_filter" />
   
   <group ns="$(arg namespace)">
     <node pkg="virtual_force_publisher" type="virtual_force_publisher" name="virtual_force_publisher">
