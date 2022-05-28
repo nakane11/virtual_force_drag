@@ -1,5 +1,4 @@
 (ros::roseus-add-msgs "geometry_msgs")
-(ros::roseus-add-msgs "sensor_msgs")
 (load "package://fetcheus/fetch-interface.l")
 
 (defun wrenchstamped-to-list (wrench)
@@ -8,7 +7,7 @@
 
 (defun force-calibration ()
   (let (zero x-pull y-pull)
-    ;; (send *ri* :speak-jp "キャリブレーションをします")
+    (send *ri* :speak-jp "キャリブレーションをします")
     (send *ri* :speak-jp "手に触れないでください" :wait t)
     (send *ri* :speak-jp "さん" :wait t)
     (unix:sleep 1)
@@ -132,18 +131,18 @@
   :slots (std-zero std-x std-y force x-list y-list tmp-x tmp-y))
 
 (defmethod pull-arm
-    (:init ()
-	   (let (
-		 ;; (ret (force-calibration))
-		 (ret (list (list 1.5 0.8 -3) (list 3.5 -1.5) (list 2.0 -0.5)))
-		 )
-	   (setq std-zero (car ret))
-       (setq std-x (cadr ret))
-       (setq std-y (caddr ret)))
+    (:init (calib)
+     (let* ((ret (if calib
+                     (force-calibration)
+                     (list (list 1.5 0.8 -3) (list 3.5 -1.5) (list 2.0 -0.5))))
+            (setq std-zero (car ret))
+            (setq std-x (cadr ret))
+            (setq std-y (caddr ret)))
      (ros::ros-info "zero: ~A~% x: ~A~% y: ~A~%" std-zero std-x std-y)
      (ros::subscribe "/endeffector/wrench_transformed" geometry_msgs::WrenchStamped #'send self :wrench-cb)
      (setq x-list (list 0))
-     (setq y-list (list 0)))
+     (setq y-list (list 0))
+     self)
 
   (:wrench-cb
    (msg)
@@ -177,7 +176,7 @@
    ;;                                (+ (elt end-pos 1) (* (/ 500 (sqrt (+ (expt tmp-x 2) (expt tmp-y 2)))) tmp-y))
    ;;                                1400))                                  
    ;; (send *fetch* :head :look-at wrench-pos :revert-if-fail nil)
-   (send *ri* :angle-vector-raw (send *fetch* :angle-vector) 900 :head-controller)))
+   (send *ri* :angle-vector-raw (send *fetch* :angle-vector) 1200 :head-controller)))
   
   (:run ()
         (unless (null force)
@@ -215,7 +214,7 @@
 (fetch-init nil)
 (send *ri* :angle-vector #f(22.4077 66.8381 49.9094 -124.795 128.259 -49.9694 46.1586 23.8993 0.050981 1.7321))
 (send *ri* :wait-interpolation)
-(setq *pa* (instance pull-arm :init))
+(setq *pa* (instance pull-arm :init nil))
 (ros::rate 70)
 (do-until-key
   (ros::spin-once)
