@@ -1,21 +1,38 @@
 (ros::roseus-add-msgs "geometry_msgs")
 (ros::roseus-add-msgs "sensor_msgs")
 (load "package://pr2eus/pr2-interface.l")
+(load "package://hand_navigation_pr2/euslisp/give-hand-pose.l")
 
 (ros::roseus "pull_arm")
 (pr2-init nil)
   
 (defclass pull-arm
-  :slots (x-list y-list l-force r-force l-shoulder-pan r-shoulder-pan))
+  :slots (tmp-x tmp-y tmp-z x-list y-list l-force r-force l-shoulder-pan r-shoulder-pan))
 
 (defmethod pull-arm
-  (:init ()
-   (ros::subscribe "/left_endeffector/wrench_transformed" geometry_msgs::WrenchStamped #'send self :left-cb)
-   (ros::subscribe "/right_endeffector/wrench_transformed" geometry_msgs::WrenchStamped #'send self :right-cb)
-   (ros::subscribe "/joint_states" sensor_msgs::Jointstate #'send self :joint-cb)
-   (setq x-list (list 0))
-   (setq y-list (list 0))
-   self)
+    (:init ()
+     (when (ros::has-param "/target_arm")
+       (ros::delete-param "/target_arm"))
+     (setq x-list (list 0))
+     (setq y-list (list 0))
+     (pr2-reset-pose)
+     (let (hand-coords)
+       (send *pr2* :head :angle-vector #f(0.0 14.694))
+       (send *ri* :angle-vector (send *pr2* :angle-vector) 1000)
+       (setq l nil)
+       (while (null l)
+         (setq hand-coords nil)
+         (while (null hand-coords)
+           (ros::spin-once)
+           (ros::ros-info "wait for hand...")
+           (setq hand-coords (hand-pose-subscriber)))
+         (setq l (raise-hand hand-coords))
+         (ros::ros-info "hand found")))
+
+     (ros::subscribe "/left_endeffector/wrench_transformed" geometry_msgs::WrenchStamped #'send self :left-cb)
+     (ros::subscribe "/right_endeffector/wrench_transformed" geometry_msgs::WrenchStamped #'send self :right-cb)
+     (ros::subscribe "/joint_states" sensor_msgs::Jointstate #'send self :joint-cb)
+     self)
 
   (:left-cb
    (msg)
@@ -34,7 +51,7 @@
    ()
    (when (eq axis :x)
      (dolist (i x-list)
-       (unless (> (abs i) 0.8)
+       (unless (> (abs i) 1.5)
          (return-from :check nil))))
    (when (eq axis :y)
      (dolist (i y-list)
@@ -79,27 +96,30 @@
 
               (let ((vel-x 0.0) (vel-y 0.0))
                 (when (send self :check :y)
-                  (when (> tmp-y 1.8)
+                  (when (> tmp-y 2.6)
                     (setq vel-y (/ (log tmp-y) 4.0)))
-                  (when (< tmp-y -2)
+                  (when (< tmp-y -2.7)
                     (setq vel-y (- (/ (log (abs tmp-y)) 4.0)))))
 
                 (when (send self :check :x)
-                  (when (> tmp-x 2)
+                  (when (> tmp-x 2.2)
                     (setq vel-x (/ (log tmp-x) 3.0)))
-                  (when (< tmp-x -1.5)
+                  (when (< tmp-x -2.5)
                     (setq vel-x (- (/ (log (abs tmp-x)) 3.0)))))
 
                 (when (or (not (eq vel-x 0.0)) (not (eq vel-y 0.0)))
-                  (send *ri* :send-cmd-vel-raw vel-x vel-y 0))))))
+                  (send *ri* :send-cmd-vel-raw vel-x vel-y 0)))
+              ))
 
-        (when (> (length x-list) 13)
+        (when (> (length x-list) 10)
           (setq x-list (cdr x-list)))
         (setq x-list (append x-list (list tmp-x)))
 
         (when (> (length y-list) 13)
           (setq y-list (cdr y-list)))
-        (setq y-list (append y-list (list tmp-y)))))
+        (setq y-list (append y-list (list tmp-y))))))
+
+
 
 (setq *pa* (instance pull-arm :init))
 (ros::rate 50)

@@ -1,6 +1,19 @@
 <launch>
-  <arg name="gui" default="true" />
+  <arg name="gui" default="false" />
   <arg name="look" default="true" />  
+
+  <!-- <arg name="input_camera_info" value="/kinect_head/rgb/camera_info" /> -->
+  <!-- <arg name="input_rgb_image" value="/kinect_head/rgb/image_rect_color" /> -->
+  <!-- <arg name="input_depth_image" value="/kinect_head/depth_registered/hw_registered/image_rect" /> -->
+  <!-- <arg name="input_pose_array" value="/edgetpu_human_pose_estimator/output/poses" /> -->
+  
+  <!-- <include file="$(find jsk_perception)/launch/hand_pose_estimation_2d.launch" > -->
+  <!--   <arg name="INPUT_IMAGE" value="$(arg input_rgb_image)" /> -->
+  <!--   <arg name="INPUT_DEPTH_IMAGE" value="$(arg input_depth_image)" /> -->
+  <!--   <arg name="INPUT_CAMERA_INFO" value="$(arg input_camera_info)" /> -->
+  <!--   <arg name="with_depth" value="true" /> -->
+  <!--   <arg name="gui" value="false" /> -->
+  <!-- </include> -->
   
   <!-- <include file="$(find virtual_force_publisher)/launch/dualarm_virtual_force_publisher.launch" /> -->
 
@@ -31,7 +44,7 @@
   <node pkg="roseus" type="roseus" name="pull_arm" output="screen"
         args="$(find virtual_force_drag)/euslisp/pr2-pull-arm.l"  />
 
-  <group if="$(arg look)" >  
+  <group if="$(arg look)" >
     <node pkg="roseus" type="roseus" name="head_look_at" output="screen"
           args="$(find virtual_force_drag)/euslisp/pr2-head-look-at.l"  />
   </group>
