@@ -39,7 +39,7 @@
   ;;                                 (+ (elt end-pos 1) (* (/ 500 (sqrt (+ (expt tmp-x 2) (expt tmp-y 2)))) tmp-y))
   ;;                                 1400))
   ;;  (send *pr2* :head :look-at wrench-pos)
-   (send *ri* :angle-vector (send *pr2* :angle-vector) 2000 :head-controller))
+   (send *ri* :angle-vector (send *pr2* :angle-vector) 3000 :head-controller))
        
   (:run ()
    (when (ros::has-param "/target_arm")
