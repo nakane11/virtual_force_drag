@@ -91,7 +91,7 @@
 
             (block send-cmd-vel
               (unless (null rotate)
-                (send *ri* :send-cmd-vel-raw 0 0 rotate)
+                (send *ri* :send-cmd-vel-raw 0 0 rotate :topic-name "/base_controller/cmd_vel")
                 (return-from send-cmd-vel))
 
               (let ((vel-x 0.0) (vel-y 0.0))
@@ -108,8 +108,7 @@
                     (setq vel-x (- (/ (log (abs tmp-x)) 3.0)))))
 
                 (when (or (not (eq vel-x 0.0)) (not (eq vel-y 0.0)))
-                  (send *ri* :send-cmd-vel-raw vel-x vel-y 0)))
-              ))
+                  (send *ri* :send-cmd-vel-raw vel-x vel-y 0 :topic-name "/base_controller/cmd_vel")))))
 
         (when (> (length x-list) 10)
           (setq x-list (cdr x-list)))
