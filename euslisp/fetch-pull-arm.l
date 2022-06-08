@@ -128,7 +128,7 @@
     (list zero x-pull y-pull)))
     
 (defclass pull-arm
-  :slots (std-zero std-x std-y force x-list y-list tmp-x tmp-y))
+  :slots (std-zero std-x std-y force x-list y-list z-list tmp-x tmp-y tmp-z r))
 
 (defmethod pull-arm
     (:init (calib)
@@ -138,11 +138,14 @@
             (setq std-zero (car ret))
             (setq std-x (cadr ret))
             (setq std-y (caddr ret)))
-     (ros::ros-info "zero: ~A~% x: ~A~% y: ~A~%" std-zero std-x std-y)
-     (ros::subscribe "/endeffector/wrench_transformed" geometry_msgs::WrenchStamped #'send self :wrench-cb)
-     (setq x-list (list 0))
-     (setq y-list (list 0))
-     self)
+       (send *fetch* :angle-vector (send *ri* :state :potentio-vector))
+       (setq arm-pos (send (send *fetch* :rarm :end-coords) :worldpos))
+       (setq r (/ (sqrt (+ (expt (elt arm-pos 0) 2) (expt (elt arm-pos 1) 2))) 1000))
+       (ros::ros-info "zero: ~A~% x: ~A~% y: ~A~%" std-zero std-x std-y)
+       (ros::subscribe "/endeffector/wrench_transformed" geometry_msgs::WrenchStamped #'send self :wrench-cb)
+       (setq x-list (list 0))
+       (setq y-list (list 0))
+       (setq z-list (list 0)))
 
   (:wrench-cb
    (msg)
@@ -157,6 +160,10 @@
    (when (eq axis :y)
      (dolist (i y-list)
        (unless (> (abs i) 1)
+         (return-from :check nil))))
+   (when (eq axis :z)
+     (dolist (i z-list)
+       (unless (> (abs i) 2)
          (return-from :check nil))))
    t)
 
@@ -184,8 +191,12 @@
           (setq tmp-y (- (send force :y) (elt std-zero 1)))
           (setq tmp-z (- (send force :z) (elt std-zero 2)))
 	  ;; (ros::ros-info "x: ~A  y: ~A z: ~A" tmp-x tmp-y tmp-z)
-          ;; (send self :look-at-hand)
+          (send self :look-at-hand)
           (block move
+            (when (send self :check :z)
+              (send *ri* :send-cmd-vel-raw (* r (/ tmp-z 2.0)) (/ tmp-z 2.0) :topic-name "/base_controller/cmd_vel")
+              (return-from move nil))
+
             (when (send self :check :x)
               (when (> tmp-x (- (elt std-x 0) (elt std-zero 0)))
                 (send *ri* :send-cmd-vel-raw (/ (log tmp-x) 4.0) 0 :topic-name "/base_controller/cmd_vel"))
@@ -208,7 +219,12 @@
 
           (when (> (length y-list) 12)
             (setq y-list (cdr y-list)))
-          (setq y-list (append y-list (list tmp-y))))))
+          (setq y-list (append y-list (list tmp-y)))
+
+          (when (> (length z-list) 8)
+            (setq z-list (cdr z-list)))
+          (setq z-list (append z-list (list tmp-z)))
+)))
 
 (ros::roseus "pull_arm")
 (fetch-init nil)
