@@ -25,7 +25,7 @@
     </node>
   </group>
 
-  <node pkg="roseus" type="roseus" name="pull_arm" output="screen"
-        args="$(find virtual_force_drag)/euslisp/fetch-pull-arm.l"  />
+  <node pkg="roseus" type="roseus" name="pull_arm"
+        args="$(find virtual_force_drag)/euslisp/fetch-pull-arm-calib.l"  />
   
 </launch>
