@@ -1,5 +1,4 @@
 (ros::roseus-add-msgs "geometry_msgs")
-(ros::roseus-add-msgs "sensor_msgs")
 
 (ros::roseus "pull_arm")
 
@@ -112,7 +111,6 @@
             (setq tmp-y (* sign (- (send force :y) (cdr (assoc "zero" force-th-y :test #'string=)))))
             (setq tmp-z (- (send force :z) (cdr (assoc "zero" force-th-z :test #'string=))))
 
-            (ros::ros-info "~A ~A ~A" tmp-x tmp-y tmp-z)
             (when (> (length x-list) continuity-x)
               (setq x-list (cdr x-list)))
             (setq x-list (append x-list (list tmp-x)))
