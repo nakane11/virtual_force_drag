@@ -25,8 +25,15 @@
     </node>
   </group>
 
-  <!-- <node pkg="roseus" type="roseus" name="pull_arm" -->
-  <!--       args="$(find virtual_force_drag)/euslisp/fetch-pull-arm-calib.l"  /> -->
+  <node pkg="roseus" type="roseus" name="look"
+        args="$(find virtual_force_drag)/euslisp/look.l" >
+    <rosparam subst_value="true">
+      robot: fetch
+      target_arm: rarm
+      wrench_topic: /endeffector/wrench_transformed
+      input_file: $(find virtual_force_drag)/fetch_pull_arm.yaml
+    </rosparam>
+  </node>
 
   <node pkg="roseus" type="roseus" name="pull_arm"
         args="$(find virtual_force_drag)/euslisp/pull-arm.l"
@@ -34,8 +41,7 @@
     <rosparam subst_value="true">
       robot: fetch
       target_arm: rarm
-      <!-- vel_topic: /base_controller/cmd_vel -->
-      vel_topic: /test
+      vel_topic: /base_controller/cmd_vel
       wrench_topic: /endeffector/wrench_transformed
       input_file: $(find virtual_force_drag)/fetch_pull_arm.yaml
     </rosparam>
