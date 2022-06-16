@@ -1,0 +1,30 @@
+(setq *look-enable* t)
+
+(defun head-look-at (robot x y)
+  (when *look-enable*
+    (let (pan tilt)
+      (setq pan (rad2deg (atan y x)))
+      (setq tilt 0)
+      (when (string= robot "pr2")
+        (if (> pan 0)
+            (setq pan (- (min pan 165) 50))
+            (setq pan (+ 50 (max pan -165))))
+        (send *robot* :head :angle-vector (float-vector pan tilt))
+        (send *ri* :angle-vector (send *robot* :angle-vector) 2000 :head-controller))
+      (when (string= robot "fetch")
+        (if (> pan 0)
+            (setq pan (min pan 90))
+            (setq pan (max pan -90)))
+        (send *robot* :head :angle-vector (float-vector pan tilt))
+        (send *ri* :angle-vector-raw (send *robot* :angle-vector) 2000 :head-controller)))))
+
+(defun start-look-at (req)
+  (setq *look-enable* t)
+  (instance std_srvs::EmptyResponse :init))
+
+(defun stop-look-at (req)
+  (setq *look-enable* nil)
+  (instance std_srvs::EmptyResponse :init))
+
+(ros::advertise-service "~start" std_srvs::Empty #'start-look-at)
+(ros::advertise-service "~stop" std_srvs::Empty #'stop-look-at)
