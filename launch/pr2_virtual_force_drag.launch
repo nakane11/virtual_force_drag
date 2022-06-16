@@ -41,13 +41,27 @@
     </node>
   </group>
 
-  <node pkg="roseus" type="roseus" name="pull_arm" output="screen"
-        args="$(find virtual_force_drag)/euslisp/pr2-pull-arm.l"  />
+  <!-- <node pkg="roseus" type="roseus" name="pull_arm" output="screen" -->
+  <!--       args="$(find virtual_force_drag)/euslisp/pr2-pull-arm.l"  /> -->
 
-  <group if="$(arg look)" >
-    <node pkg="roseus" type="roseus" name="head_look_at" output="screen"
-          args="$(find virtual_force_drag)/euslisp/pr2-head-look-at.l"  />
-  </group>
+  <node pkg="roseus" type="roseus" name="pr2_pull_arm"
+        args="$(find virtual_force_drag)/euslisp/pull-arm.l"
+        output="screen">
+    <rosparam subst_value="true">
+      robot: pr2
+      target_arm: larm
+      <!-- vel_topic: /base_controller/cmd_vel -->
+      vel_topic: /test
+      wrench_topic: /left_endeffector/wrench_transformed
+      joint_topic: /joint_states
+      input_file: $(find virtual_force_drag)/pr2_pull_arm.yaml
+    </rosparam>
+  </node>
+  
+  <!-- <group if="$(arg look)" > -->
+  <!--   <node pkg="roseus" type="roseus" name="head_look_at" output="screen" -->
+  <!--         args="$(find virtual_force_drag)/euslisp/pr2-head-look-at.l"  /> -->
+  <!-- </group> -->
 
   <group if="$(arg gui)" >
     <node name="rviz"

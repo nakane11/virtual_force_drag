@@ -1,0 +1,32 @@
+force_th_x: 
+    zero: 0.08
+    max: 2.0
+    min: -1.8
+
+force_th_y: 
+    zero: -0.03
+    max: 1.0
+    min: -1.5
+
+force_th_z: 
+    zero: -0.3
+    max: 1000
+    min: -1000
+
+vel_th_x: 
+    max: 2.0
+    min: 2.0
+ 
+vel_th_y: 
+    max: 2.0
+    min: 2.0
+
+continuity_x: 12
+
+continuity_y: 10
+
+
+      
+        
+        
+        
