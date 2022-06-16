@@ -1,4 +1,5 @@
 <launch>
+  <arg name="look" default="true" />    
   <arg name="namespace" default="endeffector" />
   <arg name="publish_frequency" default="50.0"/>
   <arg name="time_constant" default="0.3"/>
@@ -24,17 +25,7 @@
       </rosparam>
     </node>
   </group>
-
-  <node pkg="roseus" type="roseus" name="look"
-        args="$(find virtual_force_drag)/euslisp/look.l" >
-    <rosparam subst_value="true">
-      robot: fetch
-      target_arm: rarm
-      wrench_topic: /endeffector/wrench_transformed
-      input_file: $(find virtual_force_drag)/fetch_pull_arm.yaml
-    </rosparam>
-  </node>
-
+    
   <node pkg="roseus" type="roseus" name="pull_arm"
         args="$(find virtual_force_drag)/euslisp/pull-arm.l"
         output="screen">
@@ -46,5 +37,17 @@
       input_file: $(find virtual_force_drag)/fetch_pull_arm.yaml
     </rosparam>
   </node>
+
+  <group if="$(arg look)" >
+    <node pkg="roseus" type="roseus" name="look"
+          args="$(find virtual_force_drag)/euslisp/look.l" >
+      <rosparam subst_value="true">
+        robot: fetch
+        target_arm: rarm
+        wrench_topic: /endeffector/wrench_transformed
+        input_file: $(find virtual_force_drag)/fetch_pull_arm.yaml
+      </rosparam>
+    </node>
+  </group>
   
 </launch>

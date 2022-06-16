@@ -68,7 +68,7 @@
 (ros::advertise-service "~stop" std_srvs::Empty #'stop-look-at)
 
 (setq *pa* (instance pull-arm :init))
-(ros::rate 50)
+(ros::rate 30)
 (do-until-key
     (ros::spin-once)
   (send *pa* :run)
