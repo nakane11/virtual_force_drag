@@ -12,7 +12,7 @@
 
   <group ns="left_endeffector" >
     <node name="transform_wrench"
-          pkg="jsk_topic_tools" type="transform_wrench.py"
+          pkg="teach_spot" type="transform_wrench.py"
           output="screen" >
       <remap from="~input" to="wrench" />
       <remap from="~output" to="wrench_transformed" />
@@ -24,7 +24,7 @@
 
   <group ns="right_endeffector" >
     <node name="transform_wrench"
-          pkg="jsk_topic_tools" type="transform_wrench.py"
+          pkg="teach_spot" type="transform_wrench.py"
           output="screen" >
       <remap from="~input" to="wrench" />
       <remap from="~output" to="wrench_transformed" />

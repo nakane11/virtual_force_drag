@@ -17,7 +17,7 @@
       <param name="tip" value="$(arg tip)"/>
     </node>
     <node name="transform_wrench"
-          pkg="jsk_topic_tools" type="transform_wrench.py" >
+          pkg="teach_spot" type="transform_wrench.py" >
       <remap from="~input" to="wrench" />
       <remap from="~output" to="wrench_transformed" />
       <rosparam>
