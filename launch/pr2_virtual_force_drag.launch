@@ -2,12 +2,16 @@
   <arg name="gui" default="false" />
   <arg name="larm" default="true" />
   <arg name="look" default="true" />    
+  <arg name="safe" default="true" />
 
   <arg if="$(arg larm)" name="target_arm" value="larm" />
   <arg unless="$(arg larm)" name="target_arm" value="rarm" />
   <arg if="$(arg larm)" name="wrench_topic" value="/left_endeffector/wrench_transformed" />
   <arg unless="$(arg larm)" name="wrench_topic" value="/right_endeffector/wrench_transformed" />
-  
+
+  <arg if="$(arg safe)" name="vel_topic" value="/input_vel" />
+  <arg unless="$(arg safe)" name="vel_topic" value="/base_controller/cmd_vel" />
+
   <!-- <include file="$(find virtual_force_publisher)/launch/dualarm_virtual_force_publisher.launch" /> -->
 
   <group ns="left_endeffector" >
@@ -37,10 +41,10 @@
   <node pkg="roseus" type="roseus" name="pull_arm"
         args="$(find virtual_force_drag)/euslisp/pull-arm.l"
         output="screen">
+    <param name="vel_topic" value="$(arg vel_topic)"/>
     <rosparam subst_value="true">
       robot: pr2
       target_arm: $(arg target_arm)
-      vel_topic: /base_controller/cmd_vel
       wrench_topic: $(arg wrench_topic)
       joint_topic: /joint_states
       input_file: $(find virtual_force_drag)/pr2_pull_arm.yaml

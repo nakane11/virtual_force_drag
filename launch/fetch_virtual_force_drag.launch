@@ -1,10 +1,14 @@
 <launch>
-  <arg name="look" default="true" />    
+  <arg name="look" default="true" />
+  <arg name="safe" default="true" />
   <arg name="namespace" default="endeffector" />
   <arg name="publish_frequency" default="50.0"/>
   <arg name="time_constant" default="0.3"/>
   <arg name="root" default="torso_lift_link"/>
   <arg name="tip"  default="gripper_link"/>
+
+  <arg if="$(arg safe)" name="vel_topic" value="/input_vel" />
+  <arg unless="$(arg safe)" name="vel_topic" value="/base_controller/cmd_vel" />
 
   <node pkg="virtual_force_drag" type="fetch_joint_states_filter.py" name="joint_states_filter" />
   
@@ -29,10 +33,10 @@
   <node pkg="roseus" type="roseus" name="pull_arm"
         args="$(find virtual_force_drag)/euslisp/pull-arm.l"
         output="screen">
+    <param name="vel_topic" value="$(arg vel_topic)"/>
     <rosparam subst_value="true">
       robot: fetch
       target_arm: rarm
-      vel_topic: /base_controller/cmd_vel
       wrench_topic: /endeffector/wrench_transformed
       input_file: $(find virtual_force_drag)/fetch_pull_arm.yaml
     </rosparam>
