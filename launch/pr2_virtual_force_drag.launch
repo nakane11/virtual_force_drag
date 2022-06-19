@@ -53,11 +53,9 @@
 
   <group if="$(arg look)" >
     <node pkg="roseus" type="roseus" name="look"
-          args="$(find virtual_force_drag)/euslisp/look.l" >
+          args="$(find virtual_force_drag)/euslisp/pr2-look.l" >
+      <remap from="~input" to="$(arg wrench_topic)" />
       <rosparam subst_value="true">
-        robot: pr2
-        target_arm: $(arg target_arm)
-        wrench_topic: $(arg wrench_topic)
         input_file: $(find virtual_force_drag)/pr_pull_arm.yaml
       </rosparam>
     </node>

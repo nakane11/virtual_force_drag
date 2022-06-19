@@ -1,30 +1,39 @@
-(setq *look-enable* t)
+(ros::roseus-add-msgs "geometry_msgs")
 
-(defun head-look-at (robot x y)
-  (when *look-enable*
-    (let (pan tilt)
-      (setq pan (rad2deg (atan y x)))
-      (setq tilt 0)
-      (when (string= robot "pr2")
-        (if (> pan 0)
-            (setq pan (- (min pan 165) 50))
-            (setq pan (+ 50 (max pan -165))))
-        (send *robot* :head :angle-vector (float-vector pan tilt))
-        (send *ri* :angle-vector (send *robot* :angle-vector) 2000 :head-controller))
-      (when (string= robot "fetch")
-        (if (> pan 0)
-            (setq pan (min pan 90))
-            (setq pan (max pan -90)))
-        (send *robot* :head :angle-vector (float-vector pan tilt))
-        (send *ri* :angle-vector-raw (send *robot* :angle-vector) 2000 :head-controller)))))
+(defclass head-look-at
+     :slots (force look-enable
+                   force-th-x force-th-y force-th-z))
 
-(defun start-look-at (req)
-  (setq *look-enable* t)
-  (instance std_srvs::EmptyResponse :init))
+(defmethod head-look-at
+    (:init ()
+     (setq force-th-x (ros::get-param "/look/force_th_x"))
+     (setq force-th-y (ros::get-param "/look/force_th_y"))
+     (setq force-th-z (ros::get-param "/look/force_th_z"))
+     (setq look-enable t)
 
-(defun stop-look-at (req)
-  (setq *look-enable* nil)
-  (instance std_srvs::EmptyResponse :init))
+     (ros::advertise-service "~start" std_srvs::Empty #'send self :start-look-at)
+     (ros::advertise-service "~stop" std_srvs::Empty #'send self :stop-look-at))
 
-(ros::advertise-service "~start" std_srvs::Empty #'start-look-at)
-(ros::advertise-service "~stop" std_srvs::Empty #'stop-look-at)
+  (:wrench-cb
+   (msg)
+   (setq force (send (send msg :wrench) :force)))
+
+  (:start-look-at (req)
+                  (setq look-enable t)
+                  (instance std_srvs::EmptyResponse :init))
+
+  (:stop-look-at (req)
+                 (setq look-enable nil)
+                 (instance std_srvs::EmptyResponse :init))
+
+  (:look (x y)
+         nil)
+  
+  (:run ()
+        (let (tmp-x tmp-y tmp-z)
+          (when force
+            (setq tmp-x (- (send force :x) (cdr (assoc "zero" force-th-x :test #'string=))))
+            (setq tmp-y (- (send force :y) (cdr (assoc "zero" force-th-y :test #'string=))))
+            (setq tmp-z (- (send force :z) (cdr (assoc "zero" force-th-z :test #'string=))))
+            
+            (send self :look tmp-x tmp-y)))))
