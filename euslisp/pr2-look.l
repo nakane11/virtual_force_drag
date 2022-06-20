@@ -4,7 +4,8 @@
 (ros::roseus "look")
 
 (defclass pr2-head-look-at
-  :super head-look-at)
+  :super head-look-at
+  :slots (wrench-topic))
 
 (defmethod pr2-head-look-at
     (:init ()
@@ -14,9 +15,10 @@
      (if input-file
          (unix:system (format nil "rosparam load ~A look" input-file))
          (force-calibration output-file))
+     (setq wrench-topic (ros::get-param "~wrench_topic"))
      
      (pr2-init nil)
-     (ros::subscribe "~input" geometry_msgs::WrenchStamped #'send self :wrench-cb))
+     (ros::subscribe wrench-topic geometry_msgs::WrenchStamped #'send self :wrench-cb))
 
   (:look (x y)
          (when look-enable

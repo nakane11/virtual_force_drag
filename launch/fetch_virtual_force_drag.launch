@@ -45,8 +45,8 @@
   <group if="$(arg look)" >
     <node pkg="roseus" type="roseus" name="look"
           args="$(find virtual_force_drag)/euslisp/fetch-look.l" >
-      <param name="~input" value="/endeffector/wrench_transformed"/>
       <rosparam subst_value="true">
+        wrench_topic: /endeffector/wrench_transformed
         input_file: $(find virtual_force_drag)/fetch_pull_arm.yaml
       </rosparam>
     </node>
