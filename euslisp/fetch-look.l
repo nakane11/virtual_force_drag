@@ -5,7 +5,8 @@
 
 
 (defclass fetch-head-look-at
-  :super head-look-at)
+  :super head-look-at
+  :slots (wrench-topic))
 
 (defmethod fetch-head-look-at
     (:init ()
@@ -14,21 +15,22 @@
      (setq output-file (ros::get-param "~output_file" "output.yaml"))
      (if input-file
          (unix:system (format nil "rosparam load ~A look" input-file))
-         (force-calibration output-file))
-     
+       (force-calibration output-file))
+     (setq wrench-topic (ros::get-param "~wrench_topic"))
+
      (fetch-init nil)
-     (ros::subscribe "~input" geometry_msgs::WrenchStamped #'send self :wrench-cb))
+     (ros::subscribe wrench-topic geometry_msgs::WrenchStamped #'send self :wrench-cb))
 
   (:look (x y)
          (when look-enable
            (let (pan tilt)
-             (setq pan (rad2deg (atan y x)))
+             (setq pan (* 90 (/ y (* 1.6 (cdr (assoc "max" force-th-y :test #'string=))))))
              (setq tilt 0)
              (if (> pan 0)
                  (setq pan (min pan 90))
-                 (setq pan (max pan -90)))
-             (send *robot* :head :angle-vector (float-vector pan tilt))
-             (send *ri* :angle-vector-raw (send *robot* :angle-vector) 2000 :head-controller)))))
+               (setq pan (max pan -90)))
+             (send *fetch* :head :angle-vector (float-vector pan tilt))
+             (send *ri* :angle-vector-raw (send *fetch* :angle-vector) 2000 :head-controller)))))
 
 (setq *fetch-head-look-at* (instance fetch-head-look-at :init))
 (ros::rate 30)
@@ -36,6 +38,7 @@
     (ros::spin-once)
   (send *fetch-head-look-at* :run)
   (ros::sleep))
+
 
 
 
