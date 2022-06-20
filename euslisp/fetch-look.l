@@ -30,11 +30,11 @@
              (send *robot* :head :angle-vector (float-vector pan tilt))
              (send *ri* :angle-vector-raw (send *robot* :angle-vector) 2000 :head-controller)))))
 
-(setq *head-look-at* (instance fetch-head-look-at :init))
+(setq *fetch-head-look-at* (instance fetch-head-look-at :init))
 (ros::rate 30)
 (do-until-key
     (ros::spin-once)
-  (send *head-look-at** :run)
+  (send *fetch-head-look-at* :run)
   (ros::sleep))
 
 

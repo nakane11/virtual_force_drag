@@ -29,10 +29,10 @@
              (send *pr2* :head :angle-vector (float-vector pan tilt))
              (send *ri* :angle-vector (send *pr2* :angle-vector) 2000 :head-controller)))))
 
-(setq *head-look-at* (instance pr2-head-look-at :init))
+(setq *pr2-head-look-at* (instance pr2-head-look-at :init))
 (ros::rate 30)
 (do-until-key
     (ros::spin-once)
-  (send *head-look-at** :run)
+  (send *pr2-head-look-at* :run)
   (ros::sleep))
 
