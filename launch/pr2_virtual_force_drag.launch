@@ -56,7 +56,7 @@
           args="$(find virtual_force_drag)/euslisp/pr2-look.l" >
       <rosparam subst_value="true">
         wrench_topic: $(arg wrench_topic)
-        input_file: $(find virtual_force_drag)/pr_pull_arm.yaml
+        input_file: $(find virtual_force_drag)/pr2_pull_arm.yaml
       </rosparam>
     </node>
   </group>
