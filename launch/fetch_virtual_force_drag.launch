@@ -38,7 +38,7 @@
       robot: fetch
       target_arm: rarm
       wrench_topic: /endeffector/wrench_transformed
-      input_file: $(find virtual_force_drag)/fetch_pull_arm.yaml
+      input_file: $(find virtual_force_drag)/config/sample_fetch_pull_arm.yaml
     </rosparam>
   </node>
 
@@ -47,7 +47,7 @@
           args="$(find virtual_force_drag)/euslisp/fetch-look.l" >
       <rosparam subst_value="true">
         wrench_topic: /endeffector/wrench_transformed
-        input_file: $(find virtual_force_drag)/fetch_pull_arm.yaml
+        input_file: $(find virtual_force_drag)/config/sample_fetch_pull_arm.yaml
       </rosparam>
     </node>
   </group>
