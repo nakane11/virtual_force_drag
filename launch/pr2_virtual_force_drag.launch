@@ -3,7 +3,8 @@
   <arg name="larm" default="true" />
   <arg name="look" default="true" />    
   <arg name="safe" default="true" />
-
+  <arg name="input_file" default="sample_pr2_pull_arm.yaml"/>
+  
   <arg if="$(arg larm)" name="target_arm" value="larm" />
   <arg unless="$(arg larm)" name="target_arm" value="rarm" />
   <arg if="$(arg larm)" name="wrench_topic" value="/left_endeffector/wrench_transformed" />
@@ -47,7 +48,7 @@
       target_arm: $(arg target_arm)
       wrench_topic: $(arg wrench_topic)
       joint_topic: /joint_states
-      input_file: $(find virtual_force_drag)/config/sample_pr2_pull_arm.yaml
+      input_file: $(find virtual_force_drag)/config/$(arg input_file)
     </rosparam>
   </node>
 
@@ -56,7 +57,7 @@
           args="$(find virtual_force_drag)/euslisp/pr2-look.l" >
       <rosparam subst_value="true">
         wrench_topic: $(arg wrench_topic)
-        input_file: $(find virtual_force_drag)/config/sample_pr2_pull_arm.yaml
+        input_file: $(find virtual_force_drag)/config/$(arg input_file)
       </rosparam>
     </node>
   </group>
