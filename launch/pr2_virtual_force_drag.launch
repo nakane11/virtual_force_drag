@@ -7,10 +7,13 @@
   
   <arg if="$(arg larm)" name="target_arm" value="larm" />
   <arg unless="$(arg larm)" name="target_arm" value="rarm" />
-  <arg if="$(arg larm)" name="wrench_topic" value="/left_endeffector/wrench_transformed" />
-  <arg unless="$(arg larm)" name="wrench_topic" value="/right_endeffector/wrench_transformed" />
+  <!-- <arg if="$(arg larm)" name="wrench_topic" value="/left_endeffector/wrench_transformed" /> -->
+  <!-- <arg unless="$(arg larm)" name="wrench_topic" value="/right_endeffector/wrench_transformed" /> -->
+  <arg if="$(arg larm)" name="wrench_topic" value="/left_endeffector/wrench_smoothened" />
+  <arg unless="$(arg larm)" name="wrench_topic" value="/right_endeffector/wrench_smoothened" />
 
   <arg if="$(arg safe)" name="vel_topic" value="/input_vel" />
+  <!-- <arg if="$(arg safe)" name="vel_topic" value="/dummy_vel" /> -->
   <arg unless="$(arg safe)" name="vel_topic" value="/base_controller/cmd_vel" />
 
   <!-- <include file="$(find virtual_force_publisher)/launch/dualarm_virtual_force_publisher.launch" /> -->
@@ -25,6 +28,16 @@
         target_frame_id: base_footprint
       </rosparam>
     </node>
+
+    <node name="smooth_wrench"
+          pkg="virtual_force_drag" type="smooth_wrench.py"
+          output="screen" >
+      <remap from="~input" to="wrench_transformed" />
+      <remap from="~output" to="wrench_smoothened" />
+      <rosparam>
+        length: 10
+      </rosparam>
+    </node>
   </group>
 
   <group ns="right_endeffector" >
@@ -37,10 +50,20 @@
         target_frame_id: base_footprint
       </rosparam>
     </node>
+    <node name="smooth_wrench"
+          pkg="virtual_force_drag" type="smooth_wrench.py"
+          output="screen" >
+      <remap from="~input" to="wrench_transformed" />
+      <remap from="~output" to="wrench_smoothened" />
+      <rosparam>
+        length: 10
+      </rosparam>
+    </node>
+
   </group>
 
   <node pkg="roseus" type="roseus" name="pull_arm"
-        args="$(find virtual_force_drag)/euslisp/pull-arm.l"
+        args="$(find virtual_force_drag)/euslisp/pull-arm-moving-average.l"
         output="screen">
     <param name="vel_topic" value="$(arg vel_topic)"/>
     <rosparam subst_value="true">
