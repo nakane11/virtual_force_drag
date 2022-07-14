@@ -7,8 +7,6 @@
   
   <arg if="$(arg larm)" name="target_arm" value="larm" />
   <arg unless="$(arg larm)" name="target_arm" value="rarm" />
-  <!-- <arg if="$(arg larm)" name="wrench_topic" value="/left_endeffector/wrench_transformed" /> -->
-  <!-- <arg unless="$(arg larm)" name="wrench_topic" value="/right_endeffector/wrench_transformed" /> -->
   <arg if="$(arg larm)" name="wrench_topic" value="/left_endeffector/wrench_smoothened" />
   <arg unless="$(arg larm)" name="wrench_topic" value="/right_endeffector/wrench_smoothened" />
 
@@ -20,7 +18,7 @@
 
   <group ns="left_endeffector" >
     <node name="transform_wrench"
-          pkg="teach_spot" type="transform_wrench.py"
+          pkg="jsk_topic_tools" type="transform_wrench.py"
           output="screen" >
       <remap from="~input" to="wrench" />
       <remap from="~output" to="wrench_transformed" />
@@ -42,7 +40,7 @@
 
   <group ns="right_endeffector" >
     <node name="transform_wrench"
-          pkg="teach_spot" type="transform_wrench.py"
+          pkg="jsk_topic_tools" type="transform_wrench.py"
           output="screen" >
       <remap from="~input" to="wrench" />
       <remap from="~output" to="wrench_transformed" />
