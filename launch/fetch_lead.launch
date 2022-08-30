@@ -1,0 +1,49 @@
+<launch>
+  <arg name="safe" default="true" />
+  
+  <arg name="namespace" default="endeffector" />
+  <arg name="publish_frequency" default="50.0"/>
+  <arg name="time_constant" default="0.3"/>
+  <arg name="root" default="torso_lift_link"/>
+  <arg name="tip"  default="gripper_link"/>
+
+  <arg if="$(arg safe)" name="vel_topic" value="/input_vel" />
+  <arg unless="$(arg safe)" name="vel_topic" value="/base_controller/cmd_vel" />
+
+  <node pkg="virtual_force_drag" type="fetch_joint_states_filter.py" name="joint_states_filter" />
+  
+  <group ns="$(arg namespace)">
+    <node pkg="virtual_force_publisher" type="virtual_force_publisher" name="virtual_force_publisher">
+      <remap from="joint_states" to="/joint_states_filtered"/>
+      <param name="publish_frequency" value="$(arg publish_frequency)"/>
+      <param name="time_constant" value="$(arg time_constant)"/>
+      <param name="root" value="$(arg root)"/>
+      <param name="tip" value="$(arg tip)"/>
+    </node>
+    
+    <node name="transform_wrench"
+          pkg="jsk_topic_tools" type="transform_wrench.py" >
+      <remap from="~input" to="wrench" />
+      <remap from="~output" to="wrench_transformed" />
+      <rosparam>
+        target_frame_id: base_link
+      </rosparam>
+    </node>
+  </group>
+    
+  <!-- <node pkg="roseus" type="roseus" name="lead_fetch_interface" -->
+  <!--       args="$(find virtual_force_drag)/euslisp/lead-fetch.l" -->
+  <!--       output="screen" > -->
+  <!-- </node> -->
+  
+  <!-- <node pkg="virtual_force_drag" type="lead_fetch.py" name="lead_fetch" -->
+  <!--       output="screen" > -->
+  <!--   <remap from="~input" to="/endeffector/wrench_transformed" /> -->
+  <!--   <remap from="~output" to="$(arg vel_topic)"/> -->
+  <!--   <rosparam> -->
+  <!--     valid_duration: 1 -->
+  <!--     rate :70 -->
+  <!--   </rosparam> -->
+  <!-- </node> -->
+  
+</launch>
