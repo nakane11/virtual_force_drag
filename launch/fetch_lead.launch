@@ -8,6 +8,7 @@
   <arg name="tip"  default="gripper_link"/>
 
   <arg if="$(arg safe)" name="vel_topic" value="/input_vel" />
+  <!-- <arg if="$(arg safe)" name="vel_topic" value="/dummy_vel" /> -->
   <arg unless="$(arg safe)" name="vel_topic" value="/base_controller/cmd_vel" />
 
   <node pkg="virtual_force_drag" type="fetch_joint_states_filter.py" name="joint_states_filter" />
@@ -30,20 +31,30 @@
       </rosparam>
     </node>
   </group>
-    
-  <!-- <node pkg="roseus" type="roseus" name="lead_fetch_interface" -->
-  <!--       args="$(find virtual_force_drag)/euslisp/lead-fetch.l" -->
-  <!--       output="screen" > -->
-  <!-- </node> -->
+
+  <node name="smooth_wrench"
+        pkg="virtual_force_drag" type="smooth_wrench.py"
+        output="screen" >
+    <remap from="~input" to="wrench_transformed" />
+    <remap from="~output" to="wrench_smoothened" />
+    <rosparam>
+      length: 10
+    </rosparam>
+  </node>
+
+  <node pkg="roseus" type="roseus" name="lead_fetch_interface"
+        args="$(find virtual_force_drag)/euslisp/lead-fetch.l"
+        output="screen" >
+  </node>
   
-  <!-- <node pkg="virtual_force_drag" type="lead_fetch.py" name="lead_fetch" -->
-  <!--       output="screen" > -->
-  <!--   <remap from="~input" to="/endeffector/wrench_transformed" /> -->
-  <!--   <remap from="~output" to="$(arg vel_topic)"/> -->
-  <!--   <rosparam> -->
-  <!--     valid_duration: 1 -->
-  <!--     rate :70 -->
-  <!--   </rosparam> -->
-  <!-- </node> -->
+  <node pkg="virtual_force_drag" type="lead_fetch.py" name="lead_fetch"
+        output="screen" >
+    <remap from="~input" to="/endeffector/wrench_smoothened" />
+    <remap from="~output" to="$(arg vel_topic)"/>
+    <rosparam>
+      valid_duration: 1
+      rate: 70
+    </rosparam>
+  </node>
   
 </launch>
