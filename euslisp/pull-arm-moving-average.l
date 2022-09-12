@@ -75,6 +75,7 @@
                (* 0.4 (tan (/ (- rad (/ pi 4)) 1.1))))
 
   (:run ()
+        (unless (ros::get-param "/pull_arm") return)
         (let (tmp-x tmp-y tmp-z)
 
           (setq func-max-x #'(lambda (x) (/ (log (abs x)) (cdr (assoc "max" vel-th-x :test #'string=)))))
