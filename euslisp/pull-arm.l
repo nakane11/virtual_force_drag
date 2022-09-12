@@ -56,8 +56,8 @@
         (setq sign 1)
         (send *robot* :angle-vector #f(22.4077 66.8381 49.9094 -124.795 128.259 -49.9694 46.1586 23.8993 0.050981 1.7321))))
   
-     (send *ri* :angle-vector (send *robot* :angle-vector) 2000)
-     (send *ri* :wait-interpolation)
+     ;; (send *ri* :angle-vector (send *robot* :angle-vector) 2000)
+     ;; (send *ri* :wait-interpolation)
      
      (setq x-list (list 0))
      (setq y-list (list 0))
@@ -84,6 +84,7 @@
                (* 0.4 (tan (/ (- rad (/ pi 4)) 1.1))))
 
   (:run ()
+        (unless (ros::get-param "/pull_arm") (return-from :run))
         (let (tmp-x tmp-y tmp-z)
 
           (setq func-max-x #'(lambda (x) (/ (log (abs x)) (cdr (assoc "max" vel-th-x :test #'string=)))))
