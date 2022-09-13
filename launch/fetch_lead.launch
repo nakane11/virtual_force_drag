@@ -30,17 +30,17 @@
         target_frame_id: base_link
       </rosparam>
     </node>
-  </group>
 
-  <node name="smooth_wrench"
-        pkg="virtual_force_drag" type="smooth_wrench.py"
-        output="screen" >
-    <remap from="~input" to="wrench_transformed" />
-    <remap from="~output" to="wrench_smoothened" />
-    <rosparam>
-      length: 10
-    </rosparam>
-  </node>
+    <node name="smooth_wrench"
+          pkg="virtual_force_drag" type="smooth_wrench.py"
+          output="screen" >
+      <remap from="~input" to="wrench_transformed" />
+      <remap from="~output" to="wrench_smoothened" />
+      <rosparam>
+        length: 10
+      </rosparam>
+    </node>
+  </group>
 
   <node pkg="roseus" type="roseus" name="lead_fetch_interface"
         args="$(find virtual_force_drag)/euslisp/lead-fetch.l"
