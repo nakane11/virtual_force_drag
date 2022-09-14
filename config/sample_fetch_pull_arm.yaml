@@ -1,25 +1,25 @@
 force_th_x: 
-    zero: 1.5
-    max: 2.4
-    min: -2.4
+    zero: -11
+    max: 18
+    min: -18
 
 force_th_y: 
-    zero: 0.8
-    max: 1.8
-    min: -1.8
+    zero: -8
+    max: 7
+    min: -7
 
 force_th_z: 
-    zero: -3.2
+    zero: -85
     max: 1000
     min: 1000
 
 vel_th_x: 
-    max: 2
-    min: 2
+    max: 8
+    min: 8
  
 vel_th_y: 
-    max: 2
-    min: 2
+    max: 8
+    min: 8
 
 continuity_x: 20
 
