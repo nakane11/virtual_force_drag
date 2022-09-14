@@ -11,8 +11,8 @@ class LeadFetch(object):
     def __init__(self):
         self.valid_duration = rospy.get_param('~valid_duration', 1)
         self.timer_running = False
-        self.fx_threshold = 0.7
-        self.v_max = 0.5
+        self.fx_threshold = 0.6
+        self.v_max = 0.45
         self.status = 'STOP'
         self.fx = 0
         self.vx = 0
@@ -29,7 +29,7 @@ class LeadFetch(object):
         self.last_updated_time = rospy.Time.now()
 
     def wrench_cb(self, msg):
-        self.fx = (msg.wrench.force.x + 10)/60
+        self.fx = (msg.wrench.force.x - 1.3)/5
         self.last_updated_time = rospy.Time.now()
         
     def timer_cb(self, timer):
@@ -58,7 +58,7 @@ class LeadFetch(object):
                 self.status = 'STEADY'
             
         elif self.status == 'DECEL':
-            elif fx > self.fx_threshold:
+            if fx > self.fx_threshold:
                 self.status = 'ACCEL'
             elif not (fx < -self.fx_threshold):
                 self.status = 'STEADY'
@@ -83,7 +83,7 @@ class LeadFetch(object):
         self.pub.publish(pub_msg)
 
     def acceleration_x(self, f):
-        return 0.005 * math.cos(1.5*f)
+        return 0.003 * math.log(1.5*f)
 
     def deceleration_x(self, f):
         return 0.1 * (1-math.exp((-f)/5))
