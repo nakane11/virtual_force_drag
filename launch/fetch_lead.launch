@@ -7,8 +7,8 @@
   <arg name="root" default="torso_lift_link"/>
   <arg name="tip"  default="gripper_link"/>
 
-  <arg if="$(arg safe)" name="vel_topic" value="/input_vel" />
-  <!-- <arg if="$(arg safe)" name="vel_topic" value="/dummy_vel" /> -->
+  <!-- <arg if="$(arg safe)" name="vel_topic" value="/input_vel" /> -->
+  <arg if="$(arg safe)" name="vel_topic" value="/dummy_vel" />
   <arg unless="$(arg safe)" name="vel_topic" value="/base_controller/cmd_vel" />
 
   <node pkg="virtual_force_drag" type="fetch_joint_states_filter.py" name="joint_states_filter" />

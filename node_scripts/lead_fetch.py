@@ -1,4 +1,4 @@
-!/usr/bin/env python
+#!/usr/bin/env python
 
 import rospy
 import math
@@ -11,8 +11,8 @@ class LeadFetch(object):
     def __init__(self):
         self.valid_duration = rospy.get_param('~valid_duration', 1)
         self.timer_running = False
-        self.fx_threshold = 0.2
-        self.v_max = 0.8
+        self.fx_threshold = 0.7
+        self.v_max = 0.5
         self.status = 'STOP'
         self.fx = 0
         self.vx = 0
@@ -33,44 +33,47 @@ class LeadFetch(object):
         self.last_updated_time = rospy.Time.now()
         
     def timer_cb(self, timer):
+        fx = self.fx
         elapsed_time = rospy.Time.now() - self.last_updated_time
         if elapsed_time.secs > self.valid_duration:
             return
 
         if self.status == 'STOP':
             rospy.loginfo('STOP')
-            if self.fx > self.fx_threshold:
+            if fx > self.fx_threshold:
                 self.status = 'ACCEL'
             return
                 
         elif self.status == 'STEADY':
             rospy.loginfo('STEADY')
-            if self.fx < -self.fx_threshold:
+            if fx < -self.fx_threshold:
                 self.status = 'DECEL'
-            elif self.fx > self.fx_threshold:
+            elif fx > self.fx_threshold:
                 self.status = 'ACCEL'
             
-        elif self.status == 'ACCEL':            
-            self.vx += self.acceleration_x()
-            rospy.loginfo('ACCEL: +{}'.format(self.acceleration_x()))
-            if self.vx > self.v_max:
-                self.vx = self.v_max
-            if self.fx < -self.fx_threshold:
+        elif self.status == 'ACCEL':
+            if fx < -self.fx_threshold:
                 self.status = 'DECEL'
-            elif not (self.fx > self.fx_threshold):
+            elif not (fx > self.fx_threshold):
                 self.status = 'STEADY'
             
         elif self.status == 'DECEL':
-            self.vx += self.deceleration_x()
-            rospy.loginfo('DECEL: {}'.format(self.deceleration_x()))
+            elif fx > self.fx_threshold:
+                self.status = 'ACCEL'
+            elif not (fx < -self.fx_threshold):
+                self.status = 'STEADY'
+
+        if self.status == 'ACCEL':
+            self.vx += self.acceleration_x(fx)
+            rospy.loginfo('ACCEL: +{}'.format(self.acceleration_x(fx)))
+            if self.vx > self.v_max:
+                self.vx = self.v_max
+        elif self.status == 'DECEL':
+            self.vx += self.deceleration_x(fx)
+            rospy.loginfo('DECEL: {}'.format(self.deceleration_x(fx)))
             if self.vx < 0:
                 self.vx = 0
                 self.status == 'STOP'
-            elif self.fx > self.fx_threshold:
-                self.status = 'ACCEL'
-            elif not (self.fx < -self.fx_threshold):
-                self.status = 'STEADY'
-                
         self.send_cmd_vel(x=self.vx)
         
     def send_cmd_vel(self, x=0, d=0):
@@ -79,11 +82,11 @@ class LeadFetch(object):
         pub_msg.angular.z = d
         self.pub.publish(pub_msg)
 
-    def acceleration_x(self):
-        return 0.01 * math.cos(1.5*self.fx)
+    def acceleration_x(self, f):
+        return 0.005 * math.cos(1.5*f)
 
-    def deceleration_x(self):
-        return 0.1 * (1-math.exp((-self.fx)/5))
+    def deceleration_x(self, f):
+        return 0.1 * (1-math.exp((-f)/5))
 
     def start_timer(self, req):
         if not self.timer_running:
