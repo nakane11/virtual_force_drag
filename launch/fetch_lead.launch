@@ -1,5 +1,5 @@
 <launch>
-  <arg name="safe" default="true" />
+  <arg name="safe" default="false" />
   
   <arg name="namespace" default="endeffector" />
   <arg name="publish_frequency" default="50.0"/>
@@ -7,8 +7,7 @@
   <arg name="root" default="torso_lift_link"/>
   <arg name="tip"  default="gripper_link"/>
 
-  <arg if="$(arg safe)" name="vel_topic" value="/base_controller/cmd_vel" />
-  <!-- <arg if="$(arg safe)" name="vel_topic" value="/dummy_vel" /> -->
+  <arg if="$(arg safe)" name="vel_topic" value="/dummy_vel" />
   <arg unless="$(arg safe)" name="vel_topic" value="/base_controller/cmd_vel" />
 
   <node pkg="virtual_force_drag" type="fetch_joint_states_filter.py" name="joint_states_filter" />
@@ -53,7 +52,7 @@
     <remap from="~output" to="$(arg vel_topic)"/>
     <rosparam>
       valid_duration: 1
-      rate: 70
+      rate: 50
     </rosparam>
   </node>
   

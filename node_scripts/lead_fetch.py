@@ -12,15 +12,16 @@ class LeadFetch(object):
         self.valid_duration = rospy.get_param('~valid_duration', 1)
         self.timer_running = False
         self.fx_threshold = 0.6
-        self.fy_threshold = 0.6
-        self.vx_max = 0.45
-        self.vy_max = math.pi
+        self.fy_threshold = 0.7
+        self.vx_max = 0.7
+        self.vy_max = math.pi * 0.3
         self.status_x = 'STOP'
         self.status_y = 'STOP'
         self.fx = 0
         self.fy = 0
         self.vx = 0
         self.vy = 0
+        self.sign_x = 1
 
         self.pub = rospy.Publisher('~output', Twist, queue_size=1)
         self.sub = rospy.Subscriber('~input', WrenchStamped, self.wrench_cb)
@@ -34,88 +35,90 @@ class LeadFetch(object):
         self.last_updated_time = rospy.Time.now()
 
     def wrench_cb(self, msg):
-        self.fx = (msg.wrench.force.x - 1.3)/5
-        self.fy = (msg.wrench.force.y - 1.3)/5
+        self.fx = (msg.wrench.force.x - 1.5)/7
+        # self.fy = (msg.wrench.force.y - 0.8)/3.5
         self.last_updated_time = rospy.Time.now()
 
     def execute_x(self, f):
         if self.status_x == 'STOP':
             rospy.loginfo('STOP')
-            if f > self.fx_threshold:
+            if abs(f) > self.fx_threshold:
                 self.status_x = 'ACCEL'
+                self.sign_x = 1 if f > 0 else -1
             return
                 
         elif self.status_x == 'STEADY':
             rospy.loginfo('STEADY')
-            if f < -self.fx_threshold:
-                self.status_x = 'DECEL'
-            elif f > self.fx_threshold:
-                self.status_x = 'ACCEL'
+            if self.vx > 0:
+                self.sign_x = 1
+            elif self.vx < 0:
+                self.sign_x = -1
+            else:
+                self.sign_x = 1 if f > 0 else -1
+            if abs(f) > self.fx_threshold:
+                if f * self.sign_x >= 0:
+                    self.status_x = 'ACCEL'
+                else:
+                    self.status_x = 'DECEL'
             
         elif self.status_x == 'ACCEL':
-            if f < -self.fx_threshold:
-                self.status_x = 'DECEL'
-            elif not (f > self.fx_threshold):
+            if abs(f) < self.fx_threshold:
                 self.status_x = 'STEADY'
             
         elif self.status_x == 'DECEL':
-            if f > self.fx_threshold:
-                self.status_x = 'ACCEL'
-            elif not (f < -self.fx_threshold):
+            if abs(f) < self.fx_threshold:
                 self.status_x = 'STEADY'
 
         if self.status_x == 'ACCEL':
-            self.vx += self.acceleration_x(f)
-            rospy.loginfo('ACCEL: +{}'.format(self.acceleration_x(f)))
-            if self.vx > self.vx_max:
-                self.vx = self.vx_max
+            self.vx += self.sign_x * self.acceleration_x(f)
+            rospy.loginfo('ACCEL: {}'.format(self.acceleration_x(f)))
         elif self.status_x == 'DECEL':
-            self.vx += self.deceleration_x(f)
+            self.vx -= self.sign_x * self.deceleration_x(f)
             rospy.loginfo('DECEL: {}'.format(self.deceleration_x(f)))
-            if self.vx < 0:
+            if abs(self.vx) < 0.03:
                 self.vx = 0
                 self.status_x == 'STOP'
+        self.sign_x = 1 if self.vx > 0 else -1
+        if abs(self.vx) > self.vx_max:
+            self.vx = self.sign_x * self.vx_max
 
-    def execute_y(self, f):
-        if self.status_y == 'STOP':
-            rospy.loginfo('STOP')
-            if abs(f) > self.fy_threshold:
-                self.status_y = 'ACCEL'
-            return
+    # def execute_y(self, f):
+    #     if self.status_y == 'STOP':
+    #         rospy.loginfo('STOP')
+    #         if abs(f) > self.fy_threshold:
+    #             self.status_y = 'ACCEL'
+    #         return
                 
-        elif self.status_y == 'STEADY':
-            rospy.loginfo('STEADY')
-            if abs(f) > self.fy_threshold:
-                if f * self.vy < 0:
-                    self.status_y = 'DECEL'
-                elif f * self.vy > 0:
-                    self.status_y = 'ACCEL'
+    #     elif self.status_y == 'STEADY':
+    #         rospy.loginfo('STEADY')
+    #         if abs(f) > self.fy_threshold:
+    #             if f * self.vy < 0:
+    #                 self.status_y = 'DECEL'
+    #             elif f * self.vy > 0:
+    #                 self.status_y = 'ACCEL'
             
-        elif self.status_y == 'ACCEL':
-            if abs(f) > self.fy_threshold:
-                if f * self.vy < 0:
-                    self.status_y = 'DECEL'
-            elif abs(f) < self.fy_threshold:
-                self.status_y = 'STEADY'
+    #     elif self.status_y == 'ACCEL':
+    #         if abs(f) > self.fy_threshold:
+    #             if f * self.vy < 0:
+    #                 self.status_y = 'DECEL'
+    #         elif abs(f) < self.fy_threshold:
+    #             self.status_y = 'STEADY'
             
-        elif self.status_y == 'DECEL':
-            if abs(f) > self.fy_threshold:
-                if f * self.vy < 0:
-                self.status_y = 'DECEL'
-            elif abs(f) < self.fy_threshold:
-                self.status_y = 'STEADY'
+    #     elif self.status_y == 'DECEL':
+    #         if abs(f) > self.fy_threshold:
+    #             if f * self.vy < 0:
+    #                 self.status_y = 'DECEL'
+    #         elif abs(f) < self.fy_threshold:
+    #             self.status_y = 'STEADY'
 
-        if self.status_y == 'ACCEL':
-            self.vy += self.acceleration_y(f)
-            rospy.loginfo('ACCEL: +{}'.format(self.acceleration_y(f)))
-            if self.vy > self.vy_max:
-                self.vy = self.vy_max
-        elif self.status_y == 'DECEL':
-            self.vy += self.deceleration_y(f)
-            rospy.loginfo('DECEL: {}'.format(self.deceleration_y(f)))
-            if self.vy < 0:
-                self.vy = 0
-                self.status_y == 'STOP'
+    #     if self.status_y == 'ACCEL':
+    #         self.vy += self.acceleration_y(f)
+    #         rospy.loginfo('ACCEL: +{}'.format(self.acceleration_y(f)))
+    #         if abs(self.vy) > self.vy_max:
+    #             self.vy = (1 if f>0 else -1)*self.vy_max
+    #     elif self.status_y == 'DECEL':
+    #         self.vy += self.deceleration_y(f)
+    #         rospy.loginfo('DECEL: {}'.format(self.deceleration_y(f)))
                 
     def timer_cb(self, timer):
         fx = self.fx
@@ -124,8 +127,8 @@ class LeadFetch(object):
         if elapsed_time.secs > self.valid_duration:
             return
 
-        # self.execute_x(fx)
-        self.execute_y(fy)
+        self.execute_x(fx)
+        # self.execute_y(fy)
         self.send_cmd_vel(x=self.vx, d=self.vy)
         
     def send_cmd_vel(self, x=0, d=0):
@@ -135,16 +138,17 @@ class LeadFetch(object):
         self.pub.publish(pub_msg)
 
     def acceleration_x(self, f):
-        return 0.003 * math.log(1.5*f)
+        # return 0.004 * math.log(1.5*abs(f))
+        return 0.004 * math.atan(abs(f))
 
     def deceleration_x(self, f):
-        return 0.1 * (1-math.exp((-f)/5))
+        return 0.002 * math.exp(3*abs(f))
 
-    def acceleration_y(self, f):
-        return 0.003 * math.log(1.5*f)
+    # def acceleration_y(self, f):
+    #     return (1 if f>0 else -1)*0.003 * math.log(1.5*abs(f))
 
-    def deceleration_y(self, f):
-        return 0.1 * (1-math.exp((-f)/5))
+    # def deceleration_y(self, f):
+    #     return (1 if f>0 else -1)*0.1 * (1-math.exp((-abs(f))/5))
 
     def start_timer(self, req):
         if not self.timer_running:
