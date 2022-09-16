@@ -16,14 +16,7 @@ class LeadFetch(object):
         self.fy_threshold = 0.7
         self.vx_max = 0.7
         self.vy_max = math.pi * 0.3
-        self.status_x = 'STOP'
-        self.status_y = 'STOP'
-        self.fx = 0
-        self.fy = 0
-        self.vx = 0
-        self.vy = 0
-        self.sign_x = 1
-
+        self.reset()
         self.pub = rospy.Publisher('~output', Twist, queue_size=1)
         self.status_pub = rospy.Publisher('~status', Bool, queue_size=1, latch=True)
         self.sub = rospy.Subscriber('~input', WrenchStamped, self.wrench_cb)
@@ -35,6 +28,16 @@ class LeadFetch(object):
             rospy.logwarn('You cannot set 0 as the rate; change it to 70.')
             self.rate = 70
         self.last_updated_time = rospy.Time.now()
+
+    def reset(self):
+        self.status_x = 'STOP'
+        self.status_y = 'STOP'
+        self.fx = 0
+        self.fy = 0
+        self.vx = 0
+        self.vy = 0
+        self.sign_x = 1
+        self.sign_y = 1
 
     def wrench_cb(self, msg):
         self.fx = (msg.wrench.force.x - 1.5)/7
@@ -154,6 +157,7 @@ class LeadFetch(object):
 
     def start_timer(self, req):
         if not self.timer_running:
+            self.reset()
             self.timer = rospy.Timer(rospy.Duration(1.0 / self.rate), self.timer_cb)
             self.timer_running = True
             rospy.loginfo('Timer started')
