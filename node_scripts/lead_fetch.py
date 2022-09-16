@@ -4,7 +4,8 @@ import rospy
 import math
 from geometry_msgs.msg import Twist
 from geometry_msgs.msg import WrenchStamped
-from std_srvs.srv import Empty
+from std_srvs.srv import Empty, EmptyResponse
+from std_msgs.msg import Bool
 
 class LeadFetch(object):
 
@@ -24,6 +25,7 @@ class LeadFetch(object):
         self.sign_x = 1
 
         self.pub = rospy.Publisher('~output', Twist, queue_size=1)
+        self.status_pub = rospy.Publisher('~status', Bool, queue_size=1, latch=True)
         self.sub = rospy.Subscriber('~input', WrenchStamped, self.wrench_cb)
         self.srv_start = rospy.Service('~start', Empty, self.start_timer)
         self.srv_stop = rospy.Service('~stop', Empty, self.stop_timer)
@@ -157,6 +159,8 @@ class LeadFetch(object):
             rospy.loginfo('Timer started')
         else:
             rospy.loginfo('Already timer is running')
+        self.status_pub.publish(Bool(data=True))
+        return EmptyResponse()
             
     def stop_timer(self, req):
         if self.timer_running:
@@ -165,6 +169,8 @@ class LeadFetch(object):
             rospy.loginfo('Timer stopped')
         else:
             rospy.loginfo('Timer is not running yet')
+        self.status_pub.publish(Bool(data=False))
+        return EmptyResponse()
             
 if __name__ == '__main__':
     rospy.init_node('lead_fetch')
