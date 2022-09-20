@@ -7,6 +7,10 @@
 
 (defun status-cb (msg)
   (setq *status* (send msg :data))
+  (when *status*
+    (send *ri* :speak-jp "移動可能です"))
+  (unless *status*
+    (send *ri* :speak-jp "停止しました"))
   (ros::ros-info (format nil "status:~A" *status*)))
 
 (defun joy-cb (msg)
