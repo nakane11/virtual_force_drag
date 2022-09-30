@@ -12,7 +12,7 @@ class LeadFetch(object):
     def __init__(self):
         self.valid_duration = rospy.get_param('~valid_duration', 1)
         self.timer_running = False
-        self.fx_threshold = 0.6
+        self.fx_threshold = 0.7
         self.fy_threshold = 0.8
         self.vx_max = 0.7
         self.reset()
@@ -36,14 +36,14 @@ class LeadFetch(object):
         self.sign_x = 1
 
     def wrench_cb(self, msg):
-        self.fx = (msg.wrench.force.x - 1.5)/7
-        self.fy = (msg.wrench.force.y - 0.8)/3.5
+        self.fx = (msg.wrench.force.x + 18)/30
+        self.fy = (msg.wrench.force.y + 12)/50
         self.last_updated_time = rospy.Time.now()
 
     def execute_x(self, f):
         if self.status_x == 'STOP':
             rospy.loginfo('STOP')
-            if abs(f) > self.fx_threshold:
+            if abs(f) > self.fx_threshold * 1.2:
                 self.status_x = 'ACCEL'
                 self.sign_x = 1 if f > 0 else -1
             return
@@ -56,11 +56,10 @@ class LeadFetch(object):
                 self.sign_x = -1
             else:
                 self.sign_x = 1 if f > 0 else -1
-            if abs(f) > self.fx_threshold:
-                if f * self.sign_x >= 0:
-                    self.status_x = 'ACCEL'
-                else:
-                    self.status_x = 'DECEL'
+            if abs(f) > self.fx_threshold * 1.2 and f * self.sign_x >= 0:
+                self.status_x = 'ACCEL'
+            elif abs(f) > self.fx_threshold and f * self.sign_x < 0:
+                self.status_x = 'DECEL'
             
         elif self.status_x == 'ACCEL':
             if abs(f) < self.fx_threshold:

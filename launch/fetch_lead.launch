@@ -36,7 +36,7 @@
       <remap from="~input" to="wrench_transformed" />
       <remap from="~output" to="wrench_smoothened" />
       <rosparam>
-        length: 10
+        length: 20
       </rosparam>
     </node>
   </group>
@@ -52,7 +52,7 @@
     <remap from="~output" to="$(arg vel_topic)"/>
     <rosparam>
       valid_duration: 1
-      rate: 50
+      rate: 70
     </rosparam>
   </node>
   
