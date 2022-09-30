@@ -1,0 +1,15 @@
+<launch>
+  <arg name="rosbag" />
+  <include file="$(find jsk_fetch_startup)/launch/rosbag_record.launch" >
+    <arg name="rosbag" value="$(arg rosbag)" />
+    <arg name="other_topics" value="/dual_fisheye_to_panorama/output
+				                    /base_controller/cmd_vel
+                                    /base_controller/command
+                                    /endeffector/wrench_smoothened
+                                    /endeffector/wrench_transformed
+                                    /endeffector/wrench
+                                    /lead_fetch/status
+                                    /joy
+				                    " />
+  </include>
+</launch>
