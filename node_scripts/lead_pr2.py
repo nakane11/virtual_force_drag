@@ -12,7 +12,7 @@ class LeadPR2(object):
     def __init__(self):
         self.valid_duration = rospy.get_param('~valid_duration', 1)
         self.timer_running = False
-        self.fx_threshold = 0.5
+        self.fx_threshold = 0.45
         self.fy_threshold = 0.4
         self.vx_max = 0.6
         self.vy_max = 0.5
@@ -22,6 +22,7 @@ class LeadPR2(object):
         self.sub = rospy.Subscriber('~input', WrenchStamped, self.wrench_cb)
         self.srv_start = rospy.Service('~start', Empty, self.start_timer)
         self.srv_stop = rospy.Service('~stop', Empty, self.stop_timer)
+        self.time = 0
         
         self.rate = rospy.get_param('~rate', 70)
         if self.rate == 0:
@@ -62,8 +63,10 @@ class LeadPR2(object):
                 self.sign_x = 1 if f > 0 else -1
             if abs(f) > self.fx_threshold * 1.2 and f * self.sign_x >= 0:
                 self.status_x = 'ACCEL'
+                self.time = 0
             elif abs(f) > self.fx_threshold and f * self.sign_x < 0:
                 self.status_x = 'DECEL'
+                self.time = 0
             
         elif self.status_x == 'ACCEL':
             if abs(f) < self.fx_threshold:
@@ -82,12 +85,18 @@ class LeadPR2(object):
             if self.vx * self.sign_x < 0:
                 self.vx = 0
                 self.status_x == 'STOP'
+        if self.status_x == 'STEADY':
+            self.time +=0.01
+            self.vx *= math.exp(-self.time * 0.03)
+            if abs(self.vx) < 0.01:
+                self.vx = 0
+                self.status_x == 'STOP'
         self.sign_x = 1 if self.vx > 0 else -1
         if abs(self.vx) > self.vx_max:
             self.vx = self.sign_x * self.vx_max
 
     def execute_y(self, f):
-        if abs(self.vx) > 0.05:
+        if abs(self.vx) > 0.:
             self.fy_threshold = 0.9
         else:
             self.fy_threshold = 0.4
@@ -116,7 +125,7 @@ class LeadPR2(object):
         self.pub.publish(pub_msg)
 
     def acceleration_x(self, f):
-        return 0.0055 * math.atan(abs(f))
+        return 0.005 * math.atan(abs(f))
 
     def deceleration_x(self, f):
         return 0.0036 * math.exp(3*abs(f))

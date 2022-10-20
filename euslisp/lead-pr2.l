@@ -8,9 +8,11 @@
 (defun status-cb (msg)
   (setq *status* (send msg :data))
   (when *status*
-    (send *ri* :speak-jp "移動可能です" :volume 0.5))
+    ;; (send *ri* :speak-jp "移動可能です" :volume 0.5))
+    (send *ri* :speak-en "Movable." :volume 1))
   (unless *status*
-    (send *ri* :speak-jp "停止しました" :volume 0.5))
+    ;; (send *ri* :speak-jp "停止しました" :volume 0.5))
+    (send *ri* :speak-en "Halted." :volume 1))
   (ros::ros-info (format nil "status:~A" *status*)))
 
 (defun joy-cb (msg)
