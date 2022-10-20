@@ -13,8 +13,9 @@ class LeadPR2(object):
         self.valid_duration = rospy.get_param('~valid_duration', 1)
         self.timer_running = False
         self.fx_threshold = 0.5
-        self.fy_threshold = 0.8
+        self.fy_threshold = 0.4
         self.vx_max = 0.6
+        self.vy_max = 0.5
         self.reset()
         self.pub = rospy.Publisher('~output', Twist, queue_size=1)
         self.status_pub = rospy.Publisher('~status', Bool, queue_size=1, latch=True)
@@ -30,10 +31,13 @@ class LeadPR2(object):
 
     def reset(self):
         self.status_x = 'STOP'
+        self.status_y = 'STOP'
         self.fx = 0
+        self.fy = 0
         self.vx = 0
         self.vy = 0
         self.sign_x = 1
+        self.sign_y = 1
 
     def wrench_cb(self, msg):
         self.fx = (msg.wrench.force.x - 0.02)/3
@@ -83,9 +87,14 @@ class LeadPR2(object):
             self.vx = self.sign_x * self.vx_max
 
     def execute_y(self, f):
-        if abs(f) > self.fy_threshold:
-            self.vy = 0.1 * f
-            rospy.loginfo('rotate')
+        if abs(self.vx) > 0.05:
+            self.fy_threshold = 0.9
+        else:
+            self.fy_threshold = 0.4
+        if abs(self.fy) > self.fy_threshold:
+            self.vx = 0
+            self.vy = 0.6 * math.log(abs(self.fy) + 1) * (1 if self.fy > 0 else -1)
+            self.vy = min(self.vy, self.vy_max)
         else:
             self.vy = 0
             
@@ -107,11 +116,10 @@ class LeadPR2(object):
         self.pub.publish(pub_msg)
 
     def acceleration_x(self, f):
-        # return 0.004 * math.log(1.5*abs(f))
-        return 0.008 * math.atan(abs(f))
+        return 0.0055 * math.atan(abs(f))
 
     def deceleration_x(self, f):
-        return 0.005 * math.exp(3*abs(f))
+        return 0.0036 * math.exp(3*abs(f))
 
     def start_timer(self, req):
         if not self.timer_running:
