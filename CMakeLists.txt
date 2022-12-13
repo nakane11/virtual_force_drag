@@ -10,12 +10,12 @@ project(virtual_force_drag)
 find_package(catkin REQUIRED COMPONENTS
   fetcheus
   geometry_msgs
-  geometry_msgs
   jsk_topic_tools
   pr2eus
   roseus
   rospy
   virtual_force_publisher
+  actionlib_msgs
 )
 
 ## System dependencies are found with CMake's conventions
@@ -66,17 +66,16 @@ find_package(catkin REQUIRED COMPONENTS
 # )
 
 ## Generate actions in the 'action' folder
-# add_action_files(
-#   FILES
-#   Action1.action
-#   Action2.action
-# )
+add_action_files(
+  FILES
+  Switch.action
+)
 
 ## Generate added messages and services with any dependencies listed here
-# generate_messages(
-#   DEPENDENCIES
-#   geometry_msgs#   geometry_msgs
-# )
+generate_messages(
+  DEPENDENCIES
+  actionlib_msgs
+)
 
 ################################################
 ## Declare ROS dynamic reconfigure parameters ##

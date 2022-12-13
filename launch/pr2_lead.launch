@@ -30,12 +30,12 @@
   </group>
 
   <node pkg="roseus" type="roseus" name="lead_pr2_interface"
-        args="$(find virtual_force_drag)/euslisp/lead-pr2.l"
-        output="screen" >
-  </node>
+         args="$(find virtual_force_drag)/euslisp/lead-pr2.l"
+         output="screen" >
+   </node>
   
   <node pkg="virtual_force_drag" type="lead_pr2.py" name="lead_pr2"
-        output="screen" >
+         >
     <remap from="~input" to="/left_endeffector/wrench_smoothened" />
     <remap from="~output" to="$(arg vel_topic)"/>
     <rosparam>
