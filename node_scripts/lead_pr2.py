@@ -102,8 +102,9 @@ class LeadPR2(object):
             self.fy_threshold = 0.4
         if abs(self.fy) > self.fy_threshold:
             self.vx = 0
-            self.vy = 0.6 * math.log(abs(self.fy) + 1) * (1 if self.fy > 0 else -1)
-            self.vy = min(self.vy, self.vy_max)
+            # self.vy = 0.6 * math.log(abs(self.fy) + 1) * (1 if self.fy > 0 else -1)
+            # self.vy = min(self.vy, self.vy_max)
+            self.vy = min(self.vy_max, 0.6 * math.log(abs(self.fy) + 1)) * (1 if self.fy > 0 else -1)
         else:
             self.vy = 0
             
