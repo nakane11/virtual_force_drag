@@ -1,5 +1,6 @@
 <launch>
   <arg name="safe" default="false" />
+  <arg name="machine" default="c2" />
   
   <arg name="namespace" default="left_endeffector" />
   <arg name="publish_frequency" default="50.0"/>
@@ -8,9 +9,12 @@
   <arg if="$(arg safe)" name="vel_topic" value="/dummy_vel" />
   <arg unless="$(arg safe)" name="vel_topic" value="/base_controller/cmd_vel" />
 
+  <include file="$(find pr2_machine)/pr2.machine" />
+
   <group ns="$(arg namespace)">
     <node name="transform_wrench"
-          pkg="jsk_topic_tools" type="transform_wrench.py" >
+          pkg="jsk_topic_tools" type="transform_wrench.py" 
+	  machine="$(arg machine)">
       <remap from="~input" to="wrench" />
       <remap from="~output" to="wrench_transformed" />
       <rosparam>
@@ -20,7 +24,7 @@
 
     <node name="smooth_wrench"
           pkg="virtual_force_drag" type="smooth_wrench.py"
-          output="screen" >
+          output="screen" machine="$(arg machine)">
       <remap from="~input" to="wrench_transformed" />
       <remap from="~output" to="wrench_smoothened" />
       <rosparam>
@@ -31,11 +35,11 @@
 
   <node pkg="roseus" type="roseus" name="lead_pr2_interface"
          args="$(find virtual_force_drag)/euslisp/lead-pr2.l"
-         output="screen" >
+         output="screen" machine="$(arg machine)">
    </node>
   
   <node pkg="virtual_force_drag" type="lead_pr2.py" name="lead_pr2"
-         >
+  	machine="$(arg machine)">
     <remap from="~input" to="/left_endeffector/wrench_smoothened" />
     <remap from="~output" to="$(arg vel_topic)"/>
     <rosparam>
