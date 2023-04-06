@@ -1,5 +1,6 @@
 #!/usr/bin/env roseus
 (require :pr2-interface "package://pr2eus/pr2-interface.l")
+(load "package://navigation_pr2/euslisp/tuckarm-with-hand.l")
 (ros::roseus-add-srvs "std_srvs")
 (ros::roseus-add-msgs "std_msgs")
 (ros::roseus-add-msgs "virtual_force_drag")
@@ -20,10 +21,10 @@
   (unless switch
     (when *status*
       (ros::ros-info (format nil "stop"))
-      (ros::service-call "lead_pr2/stop" (instance std_srvs::EmptyRequest :init))
-      (pr2-tuckarm-pose)
-      (send *ri* :wait-interpolation)
-      ))
+      (ros::service-call "lead_pr2/stop" (instance std_srvs::EmptyRequest :init)))
+    (pr2-tuckarm-pose)
+    (send *ri* :wait-interpolation)
+    )
   (send server :set-succeeded (send server :result)))
 
 (defun status-cb (msg)

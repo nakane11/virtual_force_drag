@@ -14,7 +14,7 @@ class LeadPR2(object):
         self.timer_running = False
         self.fx_threshold = 0.45
         self.fy_threshold = 0.4
-        self.vx_max = 0.6
+        self.vx_max = 0.8
         self.vy_max = 0.5
         self.reset()
         self.pub = rospy.Publisher('~output', Twist, queue_size=1)
@@ -87,7 +87,7 @@ class LeadPR2(object):
                 self.status_x == 'STOP'
         if self.status_x == 'STEADY':
             self.time +=0.01
-            self.vx *= math.exp(-self.time * 0.03)
+            self.vx *= math.exp(-self.time * 0.02)
             if abs(self.vx) < 0.01:
                 self.vx = 0
                 self.status_x == 'STOP'
